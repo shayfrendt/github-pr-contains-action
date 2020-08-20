@@ -21,6 +21,7 @@ jobs:
         bodyDoesNotContain: "Delete this"
         bodyContains: 'Test'
         diffContains: 'Test'
+        diffDoesNotContain: 'Test'
         filesChanged: 1
         linesChanged: 1
 ```
