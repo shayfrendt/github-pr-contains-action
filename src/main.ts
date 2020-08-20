@@ -11,14 +11,14 @@ async function run() {
         
         // Check if the pull request description contains required string
         const bodyContains = core.getInput('bodyContains')
-        if ( bodyContains && context.payload.pull_request.body.indexOf( bodyContains) < 0  ) {
-            core.setFailed("The body of the PR does not contain " + bodyContains)
+        if ( bodyContains && context.payload.pull_request.body.includes(bodyContains) ) {
+            core.setFailed("The PR description should include " + bodyContains)
         }
 
 	// Check to ensure the pull request description does not contain the specified string
         const bodyDoesNotContain = core.getInput('bodyDoesNotContain')
-        if ( bodyDoesNotContain && context.payload.pull_request.body.indexOf( bodyDoesNotContain) >= 0  ) {
-            core.setFailed("The body of the PR should not contain " + bodyDoesNotContain);
+        if ( bodyDoesNotContain && !context.payload.pull_request.body.includes(bodyDoesNotContain) ) {
+            core.setFailed("The PR description should not include " + bodyDoesNotContain);
         }
         
 	// Request the pull request diff from the GitHub API
@@ -46,12 +46,14 @@ async function run() {
 	})
 
 	const diffContains = core.getInput('diffContains')
-	if ( changes.indexOf( diffContains ) < 0 ) {
-            core.setFailed( "The added code does not contain " + diffContains);
-	} else {
-            core.exportVariable('diff',changes )
-            core.setOutput('diff',changes )
+	if ( diffContains && changes.includes(diffContains) ) {
+            core.setFailed( "The pull request diff should contain " + diffContains);
 	}
+	    
+	const diffDoesNotContain = core.getInput('diffDoesNotContain')
+	if ( diffDoesNotContain && !changes.includes(diffDoesNotContain) ) {
+            core.setFailed( "The pull request diff should not contain " + diffDoesNotContain);
+	}  
 
 	const linesChanged = +core.getInput('linesChanged')
 	if ( linesChanged && ( additions != linesChanged ) ) {
