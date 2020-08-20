@@ -9,23 +9,25 @@ async function run() {
         const github = new GitHub(token, {} )
         const PR_number = context.payload.pull_request.number
         
-        // Check if the body contains required string
+        // Check if the pull request description contains required string
         const bodyContains = core.getInput('bodyContains')
-
-        if ( context.payload.pull_request.body.indexOf( bodyContains) < 0  ) {
+        if ( bodyContains && context.payload.pull_request.body.indexOf( bodyContains) < 0  ) {
             core.setFailed("The body of the PR does not contain " + bodyContains)
         }
 
+	// Check to ensure the pull request description does not contain the specified string
         const bodyDoesNotContain = core.getInput('bodyDoesNotContain')
         if ( bodyDoesNotContain && context.payload.pull_request.body.indexOf( bodyDoesNotContain) >= 0  ) {
             core.setFailed("The body of the PR should not contain " + bodyDoesNotContain);
         }
         
-	const diffContains = core.getInput('diffContains')
+	// Request the pull request diff from the GitHub API
 	const diff_url = context.payload.pull_request.diff_url
 	const result = await github.request( diff_url )
 	const files = parse(result.data)
-	const filesChanged = +core.getInput('filesChanged')
+
+	// Check if the specified number of files have changed
+	const filesChanged = core.getInput('filesChanged')
 	if ( filesChanged && files.length != filesChanged ) {
             core.setFailed( "You should change exactly " + filesChanged + " file(s)");
 	}
@@ -42,6 +44,8 @@ async function run() {
 		})
             })
 	})
+
+	const diffContains = core.getInput('diffContains')
 	if ( changes.indexOf( diffContains ) < 0 ) {
             core.setFailed( "The added code does not contain " + diffContains);
 	} else {
